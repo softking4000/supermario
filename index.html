@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>슈퍼 검투사 브라더스 (Super Gladiator Bros) - 8비트 레트로 플랫포머</title>
+  <style>
+    /* ========================================================
+       [CSS 리셋 & 다크모드 게이밍 허브 스타일]
+       ======================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      background-color: #090d16;
+      color: #f1f5f9;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    /* 8비트 폰트 대체 픽셀 스타일 */
+    .font-pixel {
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    /* 픽셀 아트 선명화 (블러 방지) */
+    canvas.pixelated {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* 컨테이너 */
+    .game-container {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 상단 헤더 */
+    .header-bar {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #1e293b;
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 12px 18px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .title-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #f59e0b, #f43f5e, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+
+    .title-text p {
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-ctrl {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 7px 12px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-ctrl:hover {
+      background: #334155;
+      color: #fff;
+    }
+
+    .btn-ctrl.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+
+    /* 8비트 HUD 대시보드 */
+    .hud-bar {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-bottom: none;
+      border-radius: 16px 16px 0 0;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-label {
+      font-size: 0.65rem;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+
+    .hud-val {
+      font-size: 1.05rem;
+      color: #ffffff;
+    }
+
+    .hearts {
+      display: flex;
+      gap: 3px;
+      font-size: 1.1rem;
+    }
+
+    /* 캔버스 뷰포트 */
+    .viewport-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 800 / 480;
+      background: #000;
+      border: 1px solid #1e293b;
+      border-radius: 0 0 16px 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.15);
+    }
+
+    #gameCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* CRT 스캔라인 오버레이 */
+    .crt-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.7;
+    }
+
+    /* 모달 오버레이 */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: blur(6px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-title {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 12px currentColor;
+    }
+
+    .btn-action {
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+      color: #0f172a;
+      border: none;
+      font-weight: 800;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: transform 0.1s, filter 0.2s;
+    }
+
+    .btn-action:hover {
+      filter: brightness(1.1);
+      transform: scale(1.03);
+    }
+
+    /* 하단 가이드 & 모바일 가상 패드 */
+    .bottom-panel {
+      width: 100%;
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .bottom-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .key-badge {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 3px 7px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.75rem;
+    }
+
+    /* 모바일 버튼 */
+    .touch-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .d-pad {
+      display: flex;
+      gap: 8px;
+    }
+
+    .touch-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .touch-btn:active {
+      background: #f59e0b;
+      color: #0f172a;
+      transform: scale(0.95);
+    }
+
+    .action-pad {
+      display: flex;
+      gap: 10px;
+    }
+
+    .round-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      font-weight: 800;
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-run {
+      background: #be123c;
+      color: #fecdd3;
+    }
+
+    .btn-run:active {
+      background: #e11d48;
+      transform: scale(0.95);
+    }
+
+    .btn-jump {
+      background: #f59e0b;
+      color: #0f172a;
+    }
+
+    .btn-jump:active {
+      background: #fbbf24;
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="game-container">
+    <!-- 상단 게이밍 허브 네비게이션 -->
+    <header class="header-bar">
+      <div class="title-group">
+        <div class="badge-icon">⚔️</div>
+        <div class="title-text">
+          <h1>SUPER GLADIATOR BROS</h1>
+          <p>100% Canvas 2D + Web Audio API Synth Engine</p>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button id="btnCrt" class="btn-ctrl active">📺 CRT ON</button>
+        <button id="btnSound" class="btn-ctrl active">🔊 SOUND</button>
+        <button id="btnReset" class="btn-ctrl">🔄 RETRY</button>
+      </div>
+    </header>
+
+    <!-- 8비트 HUD 대시보드 -->
+    <div class="hud-bar font-pixel">
+      <div class="hud-item">
+        <span class="hud-label" style="color: #f59e0b;">GLADIATOR</span>
+        <span class="hud-val" id="hudScore">000000</span>
+      </div>
+      <div class="hud-item" style="flex-direction: row; align-items: center; gap: 6px;">
+        <span style="color: #f59e0b; font-size: 1.1rem;">🪙</span>
+        <span class="hud-val" id="hudCoins">x00</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" style="color: #f43f5e;">LIVES</span>
+        <div class="hearts" id="hudLives">❤️❤️❤️</div>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" style="color: #10b981;">WORLD</span>
+        <span class="hud-val">1-1</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" style="color: #38bdf8;">TIME</span>
+        <span class="hud-val" id="hudTime">300</span>
+      </div>
+    </div>
+
+    <!-- 메인 게임 뷰포트 -->
+    <div class="viewport-box">
+      <canvas id="gameCanvas" width="800" height="480" class="pixelated"></canvas>
+      <div id="crtOverlay" class="crt-lines"></div>
+
+      <!-- 클리어 모달 -->
+      <div id="clearModal" class="modal-overlay">
+        <div style="font-size: 3rem; margin-bottom: 8px;">🏆</div>
+        <h2 class="modal-title font-pixel" style="color: #f59e0b;">STAGE CLEAR!</h2>
+        <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 12px;">위대한 검투사가 성채에 무사히 도달했습니다! ⚔️</p>
+        <div
+          style="background: #0f172a; border: 1px solid #334155; padding: 12px 24px; border-radius: 12px; margin-bottom: 12px; text-align: center;">
+          <div class="font-pixel" style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 4px;">FINAL SCORE</div>
+          <div class="font-pixel" style="color: #fff; font-size: 1.3rem;" id="clearFinalScore">005200</div>
+        </div>
+        <button id="btnClearRestart" class="btn-action font-pixel">✨ PLAY AGAIN</button>
+      </div>
+
+      <!-- 게임 오버 모달 -->
+      <div id="overModal" class="modal-overlay">
+        <div style="font-size: 3rem; margin-bottom: 8px;">💀</div>
+        <h2 class="modal-title font-pixel" style="color: #f43f5e;">GAME OVER</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 16px;">아레나의 시련에 쓰러졌습니다. 다시 도전하세요!</p>
+        <button id="btnOverRestart" class="btn-action font-pixel"
+          style="background: linear-gradient(90deg, #f43f5e, #be123c); color: #fff;">🔄 TRY AGAIN</button>
+      </div>
+    </div>
+
+    <!-- 하단 패널: 키보드 안내 + 모바일 터치 패드 -->
+    <div class="bottom-panel">
+      <!-- 키 안내 -->
+      <div class="panel-card" style="font-size: 0.78rem; color: #94a3b8;">
+        <div
+          style="font-weight: 700; color: #f8fafc; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>🎮</span> 키보드 조작 가이드
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.74rem;">
+          <div><span class="key-badge">A / D</span> 또는 <span class="key-badge">← / →</span> : 이동</div>
+          <div><span class="key-badge">W / Space</span> : 가변 점프</div>
+          <div><span class="key-badge">Shift / X</span> : 고속 대시</div>
+          <div><span class="key-badge">버섯 획득</span> : 거대화 & 벽돌 파괴</div>
+        </div>
+      </div>
+
+      <!-- 모바일 가상 컨트롤러 -->
+      <div class="panel-card touch-controls">
+        <div class="d-pad">
+          <button id="btnLeft" class="touch-btn">◀</button>
+          <button id="btnRight" class="touch-btn">▶</button>
+        </div>
+        <div class="action-pad">
+          <button id="btnRun" class="round-btn btn-run">
+            <span>RUN</span>
+            <span style="font-size: 0.65rem;">B</span>
+          </button>
+          <button id="btnJump" class="round-btn btn-jump">
+            <span>JUMP</span>
+            <span style="font-size: 0.65rem;">A</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       [통합 스크립트: 사운드 신스 + 스프라이트 + 물리 엔진 + UI]
+       외부 라이브러리 및 네트워크 의존성 0%
+       ======================================================== -->
+  <script type="module">
+    import { soundSynth } from './src/game/soundSynth.js';
+    import { Sprites } from './src/game/sprites.js';
+    import { GameEngine } from './src/game/gameEngine.js';
+
+    // DOM 요소 바인딩
+    const canvas = document.getElementById('gameCanvas');
+    const hudScore = document.getElementById('hudScore');
+    const hudCoins = document.getElementById('hudCoins');
+    const hudLives = document.getElementById('hudLives');
+    const hudTime = document.getElementById('hudTime');
+    const btnCrt = document.getElementById('btnCrt');
+    const crtOverlay = document.getElementById('crtOverlay');
+    const btnSound = document.getElementById('btnSound');
+    const btnReset = document.getElementById('btnReset');
+    const clearModal = document.getElementById('clearModal');
+    const overModal = document.getElementById('overModal');
+    const clearFinalScore = document.getElementById('clearFinalScore');
+    const btnClearRestart = document.getElementById('btnClearRestart');
+    const btnOverRestart = document.getElementById('btnOverRestart');
+
+    // 모바일 터치 버튼
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
+    const btnRun = document.getElementById('btnRun');
+    const btnJump = document.getElementById('btnJump');
+
+    let crtOn = true;
+    let soundOn = true;
+
+    // 순수 Canvas 폭죽(Confetti) 연출기
+    const launchCanvasFireworks = () => {
+      const colors = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#fbbf24', '#ffffff'];
+      const confettis = [];
+      for (let i = 0; i < 90; i++) {
+        confettis.push({
+          x: 400,
+          y: 200,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.8) * 12,
+          size: Math.random() * 6 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.25,
+          alpha: 1.0,
+          rot: Math.random() * Math.PI,
+          rotSpeed: (Math.random() - 0.5) * 0.2
+        });
+      }
+
+      const ctx = canvas.getContext('2d');
+      const timer = setInterval(() => {
+        let alive = false;
+        confettis.forEach(c => {
+          c.x += c.vx;
+          c.y += c.vy;
+          c.vy += c.gravity;
+          c.rot += c.rotSpeed;
+          c.alpha -= 0.012;
+          if (c.alpha > 0) {
+            alive = true;
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, c.alpha);
+            ctx.fillStyle = c.color;
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.rot);
+            ctx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
+            ctx.restore();
+          }
+        });
+        if (!alive) clearInterval(timer);
+      }, 1000 / 60);
+    };
+
+    // 게임 엔진 초기화
+    const engine = new GameEngine(canvas, {
+      onScore: (s) => {
+        hudScore.textContent = s.toString().padStart(6, '0');
+      },
+      onCoins: (c) => {
+        hudCoins.textContent = 'x' + c.toString().padStart(2, '0');
+      },
+      onLives: (l) => {
+        hudLives.textContent = '❤️'.repeat(Math.max(0, l));
+      },
+      onTime: (t) => {
+        hudTime.textContent = t.toString().padStart(3, '0');
+      },
+      onClear: (finalScore) => {
+        clearFinalScore.textContent = finalScore.toString().padStart(6, '0');
+        clearModal.classList.add('show');
+        launchCanvasFireworks();
+      },
+      onGameOver: (finalScore, isTrueGameOver) => {
+        overModal.classList.add('show');
+      }
+    });
+
+    engine.start();
+
+    // 키보드 리스너
+    window.addEventListener('keydown', (e) => {
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+        e.preventDefault();
+      }
+      engine.handleKeyDown(e.code);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      engine.handleKeyUp(e.code);
+    });
+
+    // CRT 토글
+    btnCrt.addEventListener('click', () => {
+      crtOn = !crtOn;
+      crtOverlay.style.display = crtOn ? 'block' : 'none';
+      btnCrt.classList.toggle('active', crtOn);
+      btnCrt.textContent = crtOn ? '📺 CRT ON' : '📺 CRT OFF';
+    });
+
+    // 사운드 토글
+    btnSound.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundSynth.setMuted(!soundOn);
+      btnSound.classList.toggle('active', soundOn);
+      btnSound.textContent = soundOn ? '🔊 SOUND' : '🔇 MUTE';
+      if (soundOn) soundSynth.startBGM();
+    });
+
+    // 리셋 버튼
+    const doRestart = () => {
+      clearModal.classList.remove('show');
+      overModal.classList.remove('show');
+      engine.restart(true);
+      hudScore.textContent = '000000';
+      hudCoins.textContent = 'x00';
+      hudLives.textContent = '❤️❤️❤️';
+      hudTime.textContent = '300';
+    };
+
+    btnReset.addEventListener('click', doRestart);
+    btnClearRestart.addEventListener('click', doRestart);
+    btnOverRestart.addEventListener('click', doRestart);
+
+    // 모바일 터치 이벤트 바인딩
+    const bindTouch = (elem, code) => {
+      const down = (e) => { e.preventDefault(); engine.handleKeyDown(code); };
+      const up = (e) => { e.preventDefault(); engine.handleKeyUp(code); };
+      elem.addEventListener('mousedown', down);
+      elem.addEventListener('mouseup', up);
+      elem.addEventListener('touchstart', down, { passive: false });
+      elem.addEventListener('touchend', up, { passive: false });
+    };
+
+    bindTouch(btnLeft, 'ArrowLeft');
+    bindTouch(btnRight, 'ArrowRight');
+    bindTouch(btnRun, 'ShiftLeft');
+    bindTouch(btnJump, 'Space');
+  </script>
+</body>
+
+</html>

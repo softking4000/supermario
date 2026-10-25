@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+  ======================================================
+  [글로벌 게이밍 스타일 & 레트로 픽셀 아트 튜닝]
+  - Canvas 2D 픽셀이 흐려지지 않고 선명하게 유지되도록 image-rendering 설정
+  - CRT 모니터 스캔라인 효과와 레트로 네온 글로우 스타일 정의
+  ======================================================
+*/
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Outfit', sans-serif;
+    background-color: #0b0f19;
+    color: #f8fafc;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+/* 픽셀 아트 선명화 (블러 방지) */
+.pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* 레트로 8비트 폰트 클래스 */
+.font-pixel {
+  font-family: '"Press Start 2P"', monospace, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* CRT 스캔라인 애니메이션 효과 (선택적 토글 가능) */
+.crt-overlay::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+  background-size: 100% 4px;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* 은은한 네온 글로우 효과 */
+.glow-box {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.2), 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+.glow-text {
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.8), 0 0 15px rgba(239, 68, 68, 0.6);
+}
